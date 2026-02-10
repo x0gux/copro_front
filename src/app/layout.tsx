@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import MobileBlocker from "@/components/MobileBlocker";
+import EmotionRegistry from "@/lib/registry";
 
 export const metadata: Metadata = {
   title: "CoPro Dashboard",
@@ -16,12 +17,14 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <MobileBlocker>
-          <Header />
-          <main style={{ paddingTop: '110px', height: '100vh', width: '100vw', overflow: 'auto' }}>
-            {children}
-          </main>
-        </MobileBlocker>
+        <EmotionRegistry>
+          <MobileBlocker>
+            <Header />
+            <main style={{ paddingTop: '110px', height: '100vh', width: '100vw', overflow: 'auto' }}>
+              {children}
+            </main>
+          </MobileBlocker>
+        </EmotionRegistry>
       </body>
     </html>
   );
