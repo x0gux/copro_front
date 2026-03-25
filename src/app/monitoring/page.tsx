@@ -1,10 +1,31 @@
 'use client';
 
 import styled from '@emotion/styled';
+import useSWR from 'swr';
+import { getMonitoring } from '@/api/monitoring';
 import Card from '@/components/Card';
 import { Eye, Settings } from 'lucide-react';
 
+
+
 export default function Monitoring() {
+
+  const { data, error, isLoading } = useSWR('get-monitoring', getMonitoring, {
+    refreshInterval: 5000
+  });
+
+  if (isLoading) {
+    return (
+      <LoadingWrapper>
+        <LoadingText>데이터를 불러오는 중...</LoadingText>
+      </LoadingWrapper>
+    );
+  }
+
+  const monitoringData = Array.isArray(data) ? data[0] : data;
+
+  console.log(monitoringData)
+
   return (
     <MonitoringContainer>
       <TitleSection>
@@ -13,6 +34,8 @@ export default function Monitoring() {
       </TitleSection>
 
       <Grid>
+
+        <LiveViewWrapper>
         {/* Live Video View */}
         <LiveView title="Live View">
           <VideoArea>
@@ -29,31 +52,14 @@ export default function Monitoring() {
 
         {/* Detailed Sensors */}
         <SensorGrid>
-          <SensorItem>
-            <SensorLabel>수온</SensorLabel>
-            <SensorValue>25.4<SensorUnit>°C</SensorUnit></SensorValue>
-          </SensorItem>
-          <SensorItem>
-            <SensorLabel>염도</SensorLabel>
-            <SensorValue>34.5<SensorUnit>ppt</SensorUnit></SensorValue>
-          </SensorItem>
-          <SensorItem>
-            <SensorLabel>pH 농도</SensorLabel>
-            <SensorValue>8.2<SensorUnit>pH</SensorUnit></SensorValue>
-          </SensorItem>
-          <SensorItem>
-            <SensorLabel>용존산소</SensorLabel>
-            <SensorValue>6.8<SensorUnit>mg/L</SensorUnit></SensorValue>
-          </SensorItem>
-          <SensorItem>
-            <SensorLabel>인산염</SensorLabel>
-            <SensorValue>0.03<SensorUnit>ppm</SensorUnit></SensorValue>
-          </SensorItem>
+
           <SensorItem>
             <SensorLabel>질산염</SensorLabel>
             <SensorValue>2.5<SensorUnit>ppm</SensorUnit></SensorValue>
           </SensorItem>
         </SensorGrid>
+
+      </LiveViewWrapper>
 
         {/* Action Controls */}
         <Controls title="실시간 제어">
@@ -99,16 +105,22 @@ const TitleSection = styled.div`
 `;
 
 const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: minmax(140px, auto);
+  display: flex;
+  flex-direction : column;
   gap: 24px;
   flex: 1;
 `;
 
+const LiveViewWrapper = styled.div`
+  flex : 1;
+  display : flex;
+  flex-direction : row;
+  gap : 24px;
+  `
+
 const LiveView = styled(Card)`
-  grid-column: span 8;
-  grid-row: span 3;
+  width : 100%;
+  height : 60vh;
 `;
 
 const VideoArea = styled.div`
@@ -152,11 +164,8 @@ const RecDot = styled.div`
 `;
 
 const SensorGrid = styled.div`
-  grid-column: span 4;
-  grid-row: span 3;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  width : 30%;
+  height : 60vh;
 `;
 
 const SensorItem = styled.div`
@@ -168,6 +177,9 @@ const SensorItem = styled.div`
   flex-direction: column;
   justify-content: center;
   transition: all 0.2s ease;
+
+  width : 100%;
+  height : 100%;
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -219,4 +231,19 @@ const Btn = styled.button<{ primary?: boolean }>`
   &:hover {
     background: ${props => props.primary ? '#00a5a2' : 'rgba(255, 255, 255, 0.1)'};
   }
+`;
+
+
+
+const LoadingWrapper = styled.div`
+  display: flex;
+  height: calc(100vh - 110px);
+  align-items: center;
+  justify-content: center;
+`;
+
+const LoadingText = styled.div`
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
 `;

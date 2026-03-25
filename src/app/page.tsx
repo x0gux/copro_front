@@ -7,7 +7,7 @@ import MonitoringCard from '../components/dashboard/MonitoringCard';
 
 export default function Home() {
   const { data, error, isLoading } = useSWR('get-status', getStatus, {
-    refreshInterval: 5000 // 5초마다 최신 데이터 자동 폴링
+    refreshInterval: 5000
   });
 
   if (isLoading) {
@@ -18,48 +18,44 @@ export default function Home() {
     );
   }
 
-  // API 데이터 가공 (배열로 오면 첫 번째 요소 사용, 아니면 객체 그대로 사용)
   const statusData = Array.isArray(data) ? data[0] : data;
 
   return (
     <DashboardContainer>
       <Grid>
-        {/* Top Row: 상태 정보 */}
-        <MonitoringCard 
-          title="AI 판단 상태" 
-          status={statusData?.ai == 1 ? '건강' : '위험'} 
-        />
         <MonitoringCard 
           title="LED상태" 
           status={statusData?.led == 1 ? '작동중' : '정지'} 
         />
         <MonitoringCard 
+          title="AI 판단 상태" 
+          status={statusData?.ai == 1 ? '건강' : '백탁현상발생'} 
+        />
+        <MonitoringCard 
           title="칼슘 분사 상태" 
           status={statusData?.cal == 1 ? '분사중' : '미분사'} 
         />
+      </Grid>
 
-        {/* Bottom Row: 수치 데이터 */}
-        <MonitoringCard 
-          title="AI서값" 
-          value={statusData?.ai_val || '0'} 
-          unit="%"
-        />
+      <SecondGrid>
+
         <MonitoringCard 
           title="LED 값" 
           value={statusData?.led_val || '82'} 
           unit="%"
         />
         <MonitoringCard 
-          title="조도센서값" 
+          title="남아있는 칼슘량" 
           value={statusData?.lux_val || '1200'} 
           unit="lux"
         />
-      </Grid>
+        </SecondGrid>
     </DashboardContainer>
   );
 }
 
 const DashboardContainer = styled.div`
+  gap : 24px;
   padding: 40px 60px;
   max-width: 1400px;
   margin: 0 auto;
@@ -71,10 +67,18 @@ const DashboardContainer = styled.div`
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-rows: repeat(1, 1fr);
   gap: 32px;
   flex: 1;
 `;
+
+const SecondGrid = styled.div`
+  flex : 1 ;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap : 32px;
+  
+`
 
 const LoadingWrapper = styled.div`
   display: flex;
