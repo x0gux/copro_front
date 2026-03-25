@@ -12,10 +12,10 @@ export default function Header() {
       <Nav>
         <Brand>CoPro</Brand>
         <Tabs>
-          <TabLink href="/monitoring" active={pathname === '/monitoring'}>
+          <TabLink href="/monitoring" >
             모니터링
           </TabLink>
-          <TabLink href="/" active={pathname === '/'}>
+          <TabLink href="/">
             대시보드
           </TabLink>
           <ActiveIndicator 
@@ -65,7 +65,7 @@ const Tabs = styled.div`
   align-items: center;
 `;
 
-const TabLink = styled(Link)<{ active?: boolean }>`
+const TabLink = styled(Link)`
   font-size: 16px;
   font-weight: 200;
   color: #ffffff;
