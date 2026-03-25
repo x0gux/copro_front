@@ -54,8 +54,8 @@ export default function Monitoring() {
         <SensorGrid>
 
           <SensorItem>
-            <SensorLabel>질산염</SensorLabel>
-            <SensorValue>2.5<SensorUnit>ppm</SensorUnit></SensorValue>
+            <SensorLabel>조도</SensorLabel>
+            <SensorValue>2.5<SensorUnit>cds</SensorUnit></SensorValue>
           </SensorItem>
         </SensorGrid>
 
