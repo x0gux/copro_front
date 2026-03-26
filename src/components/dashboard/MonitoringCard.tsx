@@ -2,6 +2,7 @@
 
 import styled from '@emotion/styled';
 import { ReactNode } from 'react';
+import Image, { StaticImageData } from 'next/image';
 
 interface MonitoringCardProps {
   title: string;
@@ -9,9 +10,10 @@ interface MonitoringCardProps {
   unit?: string;
   status?: string;
   children?: ReactNode;
+  img? : string | StaticImageData;
 }
 
-export default function MonitoringCard({ title, value, unit, status, children }: MonitoringCardProps) {
+export default function MonitoringCard({ title, value, unit, status, children, img }: MonitoringCardProps) {
   return (
     <CardContainer>
       <Title>{title}</Title>
@@ -24,6 +26,11 @@ export default function MonitoringCard({ title, value, unit, status, children }:
         )}
         {status && <StatusBadge>{status}</StatusBadge>}
         {children}
+        {img && (
+          <ImageWrapper>
+            <Image src={img} alt={title} width={100} height={100} />
+          </ImageWrapper>
+        )}
       </Content>
     </CardContainer>
   );
@@ -87,4 +94,13 @@ const StatusBadge = styled.div`
   font-size: 14px;
   font-weight: 400;
   margin-top: 10px;
+`;
+
+const ImageWrapper = styled.div`
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width : 100%;
+  height : 100%;
 `;

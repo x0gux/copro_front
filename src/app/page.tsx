@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import styled from '@emotion/styled';
 import { getStatus } from '@/api/dashboard';
 import MonitoringCard from '../components/dashboard/MonitoringCard';
+import { coral_bad , coral_good , light_on , light_off , pill_done , pill_undone } from '../../public/png/png';
 
 export default function Home() {
   const { data, error, isLoading } = useSWR('get-status', getStatus, {
@@ -26,14 +27,17 @@ export default function Home() {
         <MonitoringCard 
           title="LED상태" 
           status={statusData?.led == 1 ? '작동중' : '정지'} 
+          img={statusData?.led == 1 ? light_on : light_off}
         />
         <MonitoringCard 
           title="AI 판단 상태" 
           status={statusData?.ai == 1 ? '건강' : '백탁현상발생'} 
+          img={statusData?.ai == 1 ? coral_good : coral_bad}
         />
         <MonitoringCard 
           title="칼슘 분사 상태" 
           status={statusData?.cal == 1 ? '분사중' : '미분사'} 
+          img={statusData?.cal == 1 ? pill_done : pill_undone}
         />
       </Grid>
 
