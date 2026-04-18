@@ -7,7 +7,7 @@ import MonitoringCard from '../components/dashboard/MonitoringCard';
 import { coral_bad , coral_good , light_on , light_off , pill_done , pill_undone } from '../../public/png/png';
 
 export default function Home() {
-  const { data, error, isLoading } = useSWR('get-status', getStatus, {
+  const { data, isLoading } = useSWR('get-status', getStatus, {
     refreshInterval: 5000
   });
 
