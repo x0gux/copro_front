@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import useSWR from 'swr';
 import { getMonitoring } from '@/api/monitoring';
 import Card from '@/components/Card';
-import { Eye, Settings } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 
 
@@ -61,18 +61,6 @@ export default function Monitoring() {
 
       </LiveViewWrapper>
 
-        {/* Action Controls */}
-        <Controls title="실시간 제어">
-          <ControlButtons>
-            <Btn primary>스크린샷 촬영</Btn>
-            <Btn>녹화 시작</Btn>
-            <Btn>피딩 모드</Btn>
-            <Btn>긴급 중지</Btn>
-            <Btn style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Settings size={16} /> 설정
-            </Btn>
-          </ControlButtons>
-        </Controls>
       </Grid>
     </MonitoringContainer>
   );
@@ -205,18 +193,6 @@ const SensorUnit = styled.span`
   opacity: 0.5;
   margin-left: 2px;
 `;
-
-const Controls = styled(Card)`
-  grid-column: span 12;
-  margin-top: 24px;
-`;
-
-const ControlButtons = styled.div`
-  display: flex;
-  gap: 16px;
-  padding: 20px 0;
-`;
-
 const Btn = styled.button<{ primary?: boolean }>`
   padding: 12px 32px;
   border-radius: 12px;

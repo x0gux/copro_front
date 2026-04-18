@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const AXIOS = axios.create({
-    baseURL : "https://heodongun.com/webhook/piuno",
+    baseURL : process.env.NEXT_PUBLIC_BASE_URL,
     headers : {
         "Content-Type" : "application/json"
     }
