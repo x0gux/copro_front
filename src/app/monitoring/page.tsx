@@ -10,7 +10,7 @@ import { Eye } from 'lucide-react';
 
 export default function Monitoring() {
 
-  const { data, error, isLoading } = useSWR('get-monitoring', getMonitoring, {
+  const { data, isLoading } = useSWR('get-monitoring', getMonitoring, {
     refreshInterval: 5000
   });
 
@@ -192,21 +192,6 @@ const SensorUnit = styled.span`
   font-size: 14px;
   opacity: 0.5;
   margin-left: 2px;
-`;
-const Btn = styled.button<{ primary?: boolean }>`
-  padding: 12px 32px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 300;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: ${props => props.primary ? '#00827f' : 'rgba(255, 255, 255, 0.05)'};
-  border: 1px solid ${props => props.primary ? '#00827f' : 'rgba(255, 255, 255, 0.1)'};
-  color: #ffffff;
-
-  &:hover {
-    background: ${props => props.primary ? '#00a5a2' : 'rgba(255, 255, 255, 0.1)'};
-  }
 `;
 
 
