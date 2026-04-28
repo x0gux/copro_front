@@ -2,17 +2,82 @@
 
 import styled from '@emotion/styled';
 import useSWR from 'swr';
+import { useEffect, useRef, useState } from 'react';
 import { getMonitoring } from '@/api/monitoring';
 import Card from '@/components/Card';
-import { Eye } from 'lucide-react';
 
+const WS_URLS = [
+  'wss://estimates-wrist-yesterday-miles.trycloudflare.com/ws',
+  'ws://10.150.3.130:9999/ws',
+];
 
+type StreamStatus = 'connecting' | 'connected' | 'failed';
+
+function useVideoStream() {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const [status, setStatus] = useState<StreamStatus>('connecting');
+
+  useEffect(() => {
+    let blobUrl: string | null = null;
+    let urlIndex = 0;
+    let failCount = 0;
+
+    function connect() {
+      const url = WS_URLS[urlIndex % WS_URLS.length];
+      setStatus('connecting');
+
+      const ws = new WebSocket(url);
+      ws.binaryType = 'blob';
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        failCount = 0;
+        setStatus('connected');
+      };
+      ws.onclose = () => {
+        failCount++;
+        urlIndex++;
+        if (failCount >= WS_URLS.length * 2) {
+          setStatus('failed');
+          setTimeout(() => { failCount = 0; connect(); }, 10000);
+        } else {
+          setStatus('connecting');
+          setTimeout(connect, 3000);
+        }
+      };
+      ws.onerror = () => ws.close();
+
+      ws.onmessage = (e) => {
+        if (e.data instanceof Blob) {
+          const prev = blobUrl;
+          blobUrl = URL.createObjectURL(e.data);
+          if (imgRef.current) imgRef.current.src = blobUrl;
+          if (prev) URL.revokeObjectURL(prev);
+        } else if (typeof e.data === 'string') {
+          if (imgRef.current) imgRef.current.src = `data:image/jpeg;base64,${e.data}`;
+        }
+      };
+    }
+
+    connect();
+
+    return () => {
+      wsRef.current?.close();
+      wsRef.current = null;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, []);
+
+  return { imgRef, status };
+}
 
 export default function Monitoring() {
-
   const { data, isLoading } = useSWR('get-monitoring', getMonitoring, {
-    refreshInterval: 5000
+    refreshInterval: 5000,
   });
+
+  const { imgRef, status } = useVideoStream();
 
   if (isLoading) {
     return (
@@ -23,8 +88,7 @@ export default function Monitoring() {
   }
 
   const monitoringData = Array.isArray(data) ? data[0] : data;
-
-  console.log(monitoringData)
+  console.log(monitoringData);
 
   return (
     <MonitoringContainer>
@@ -34,33 +98,33 @@ export default function Monitoring() {
       </TitleSection>
 
       <Grid>
-
         <LiveViewWrapper>
-        {/* Live Video View */}
-        <LiveView title="Live View">
-          <VideoArea>
-            <VideoOverlay>
-              <RecDot />
-              <span style={{ fontSize: '12px', fontWeight: '300' }}>REC / LIVE CAM 01</span>
-            </VideoOverlay>
-            <Eye size={48} color="rgba(255,255,255,0.1)" />
-            <span style={{ position: 'absolute', bottom: '20px', right: '20px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: '200' }}>
-              2026.02.10 20:18:45
-            </span>
-          </VideoArea>
-        </LiveView>
+          <LiveView title="Live View">
+            <VideoArea>
+              <VideoOverlay>
+                <RecDot $status={status} />
+                <span style={{ fontSize: '12px', fontWeight: '300' }}>
+                  {status === 'connected' ? 'REC / LIVE CAM 01' : status === 'failed' ? '연결 실패 — 재시도 중...' : '연결 중...'}
+                </span>
+              </VideoOverlay>
+              {status === 'connected' && <VideoFeed ref={imgRef} alt="live feed" />}
+              {status !== 'connected' && (
+                <NoSignal>
+                  {status === 'failed' ? '카메라 신호 없음' : '카메라 연결 중...'}
+                </NoSignal>
+              )}
+            </VideoArea>
+          </LiveView>
 
-        {/* Detailed Sensors */}
-        <SensorGrid>
-
-          <SensorItem>
-            <SensorLabel>조도</SensorLabel>
-            <SensorValue>2.5<SensorUnit>cds</SensorUnit></SensorValue>
-          </SensorItem>
-        </SensorGrid>
-
-      </LiveViewWrapper>
-
+          <SensorGrid>
+            <SensorItem>
+              <SensorLabel>조도</SensorLabel>
+              <SensorValue>
+                2.5<SensorUnit>cds</SensorUnit>
+              </SensorValue>
+            </SensorItem>
+          </SensorGrid>
+        </LiveViewWrapper>
       </Grid>
     </MonitoringContainer>
   );
@@ -94,21 +158,21 @@ const TitleSection = styled.div`
 
 const Grid = styled.div`
   display: flex;
-  flex-direction : column;
+  flex-direction: column;
   gap: 24px;
   flex: 1;
 `;
 
 const LiveViewWrapper = styled.div`
-  flex : 1;
-  display : flex;
-  flex-direction : row;
-  gap : 24px;
-  `
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+`;
 
 const LiveView = styled(Card)`
-  width : 100%;
-  height : 60vh;
+  width: 100%;
+  height: 60vh;
 `;
 
 const VideoArea = styled.div`
@@ -124,6 +188,13 @@ const VideoArea = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.05);
 `;
 
+const VideoFeed = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+`;
+
 const VideoOverlay = styled.div`
   position: absolute;
   top: 20px;
@@ -135,14 +206,16 @@ const VideoOverlay = styled.div`
   align-items: center;
   gap: 8px;
   backdrop-filter: blur(4px);
+  z-index: 10;
 `;
 
-const RecDot = styled.div`
+const RecDot = styled.div<{ $status: StreamStatus }>`
   width: 10px;
   height: 10px;
-  background: #ef4444;
+  background: ${({ $status }) =>
+    $status === 'connected' ? '#ef4444' : $status === 'failed' ? '#f97316' : '#888'};
   border-radius: 50%;
-  animation: blink 1s infinite;
+  animation: ${({ $status }) => ($status === 'connected' ? 'blink 1s infinite' : 'none')};
 
   @keyframes blink {
     0% { opacity: 1; }
@@ -151,9 +224,16 @@ const RecDot = styled.div`
   }
 `;
 
+const NoSignal = styled.div`
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+`;
+
 const SensorGrid = styled.div`
-  width : 30%;
-  height : 60vh;
+  width: 30%;
+  height: 60vh;
 `;
 
 const SensorItem = styled.div`
@@ -165,9 +245,8 @@ const SensorItem = styled.div`
   flex-direction: column;
   justify-content: center;
   transition: all 0.2s ease;
-
-  width : 100%;
-  height : 100%;
+  width: 100%;
+  height: 100%;
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -193,8 +272,6 @@ const SensorUnit = styled.span`
   opacity: 0.5;
   margin-left: 2px;
 `;
-
-
 
 const LoadingWrapper = styled.div`
   display: flex;
